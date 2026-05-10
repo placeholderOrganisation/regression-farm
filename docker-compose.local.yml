@@ -1,0 +1,80 @@
+# Convenience compose for running the entire farm on a single dev machine.
+# Production uses docker-compose.controller.yml and docker-compose.worker.yml separately.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: regression_farm
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  controller:
+    build:
+      context: ./controller
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: regression_farm
+      WORKER_TOKEN: dev-local-token-change-me
+      LOG_DIR: /var/lib/regression-farm/logs
+      ARTIFACT_DIR: /var/lib/regression-farm/artifacts
+      LOG_RETENTION_DAYS: 30
+      LOG_LEVEL: INFO
+    volumes:
+      - logs:/var/lib/regression-farm/logs
+      - artifacts:/var/lib/regression-farm/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - controller
+    ports:
+      - "5173:80"
+
+  worker:
+    build:
+      context: ./worker
+      args:
+        DOCKER_GID: ${DOCKER_GID:-999}
+    # Dev-only: run as root so the bind-mounted /var/run/docker.sock is
+    # accessible on Docker Desktop for Mac (where the socket is owned by
+    # root:root inside containers and the host has no `docker` group to
+    # mirror via DOCKER_GID). Production worker droplets keep the non-root
+    # appuser baked into the image.
+    user: "0:0"
+    restart: unless-stopped
+    depends_on:
+      - controller
+    environment:
+      CONTROLLER_URL: http://controller:8000
+      WORKER_TOKEN: dev-local-token-change-me
+      WORKER_NAME: worker-local
+      POLL_INTERVAL: 2
+      LOG_LEVEL: INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - worker-state:/var/lib/regression-farm-worker
+      - /tmp/rf-artifacts:/tmp/rf-artifacts
+
+volumes:
+  pgdata:
+  logs:
+  artifacts:
+  worker-state:

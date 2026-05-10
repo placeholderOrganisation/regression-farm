@@ -1,0 +1,24 @@
+services:
+  worker:
+    build:
+      context: ./worker
+      args:
+        # GID of the host's docker group. On Ubuntu/Debian this is usually 999;
+        # confirm with `getent group docker | cut -d: -f3` on the worker droplet.
+        DOCKER_GID: ${DOCKER_GID:-999}
+    restart: unless-stopped
+    environment:
+      CONTROLLER_URL: ${CONTROLLER_URL}
+      WORKER_TOKEN: ${WORKER_TOKEN}
+      WORKER_NAME: ${WORKER_NAME:-worker-1}
+      WORKER_PUBLIC_IP: ${WORKER_PUBLIC_IP:-}
+      POLL_INTERVAL: ${POLL_INTERVAL:-2}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      WORKER_CAPABILITIES: ${WORKER_CAPABILITIES:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - worker-state:/var/lib/regression-farm-worker
+      - /tmp/rf-artifacts:/tmp/rf-artifacts
+
+volumes:
+  worker-state:

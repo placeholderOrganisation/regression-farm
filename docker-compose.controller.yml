@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-regression_farm}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    expose:
+      - "5432"
+
+  controller:
+    build:
+      context: ./controller
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-regression_farm}
+      WORKER_TOKEN: ${WORKER_TOKEN}
+      LOG_DIR: /var/lib/regression-farm/logs
+      ARTIFACT_DIR: /var/lib/regression-farm/artifacts
+      LOG_RETENTION_DAYS: ${LOG_RETENTION_DAYS:-30}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - logs:/var/lib/regression-farm/logs
+      - artifacts:/var/lib/regression-farm/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8000"
+    # Optional direct exposure (useful for debug); can be removed in prod.
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - controller
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:
+  logs:
+  artifacts:

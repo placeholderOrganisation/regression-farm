@@ -1,0 +1,45 @@
+#cloud-config
+# Cloud-init for the Regression Farm controller droplet.
+#
+# Replace REPLACE_WITH_YOUR_REPO with your repo (HTTPS or git@) before pasting
+# into the DigitalOcean "User Data" field on droplet create.
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - gnupg
+  - lsb-release
+
+write_files:
+  - path: /opt/regression-farm/.env.controller
+    permissions: "0600"
+    content: |
+      # ---- EDIT BEFORE FIRST BOOT ----
+      POSTGRES_USER=postgres
+      POSTGRES_PASSWORD=REPLACE_WITH_STRONG_PASSWORD
+      POSTGRES_DB=regression_farm
+
+      # Generate once with: openssl rand -hex 32
+      WORKER_TOKEN=REPLACE_WITH_OPENSSL_RAND_HEX_32
+
+      LOG_RETENTION_DAYS=30
+      LOG_LEVEL=INFO
+
+runcmd:
+  # Install Docker Engine + compose plugin
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - chmod a+r /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable --now docker
+
+  # Clone repo
+  - git clone REPLACE_WITH_YOUR_REPO /opt/regression-farm/src || true
+  - cp /opt/regression-farm/.env.controller /opt/regression-farm/src/.env
+
+  # Bring up the stack
+  - cd /opt/regression-farm/src && docker compose -f docker-compose.controller.yml --env-file .env up -d --build

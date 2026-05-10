@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env / secrets
+.env
+.env.controller
+.env.worker
+*.local
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Data / runtime
+controller/logs/
+controller/artifacts/
+worker/state/
+*.sqlite
+*.db

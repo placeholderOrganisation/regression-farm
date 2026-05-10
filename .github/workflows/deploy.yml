@@ -1,0 +1,174 @@
+name: Deploy
+
+# Push-based deployment to DigitalOcean droplets via self-hosted runners.
+#
+# Topology:
+#   * Controller droplet runs a runner labeled `controller`
+#   * Each worker droplet runs a runner labeled `worker-N` (N = 1..3)
+#
+# Path-based change detection ensures we only redeploy what actually moved.
+# Worker fan-out is deterministic: one job per worker pinned to its specific
+# label so we never accidentally deploy the same code to one worker three times.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_controller:
+        description: "Deploy the controller droplet"
+        type: boolean
+        default: true
+      deploy_workers:
+        description: "Deploy all 3 worker droplets"
+        type: boolean
+        default: true
+
+# Don't let two pushes deploy on top of each other; queue them up but never
+# cancel an in-flight deploy mid-build.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # detect-changes: figure out which droplets actually need a deploy.
+  # Runs on a GitHub-hosted runner so it always succeeds even when our
+  # self-hosted runners are offline.
+  # ---------------------------------------------------------------------------
+  detect-changes:
+    name: detect-changes
+    runs-on: ubuntu-latest
+    outputs:
+      controller: ${{ steps.decide.outputs.controller }}
+      worker: ${{ steps.decide.outputs.worker }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need at least 2 commits so paths-filter can diff against the previous one.
+          fetch-depth: 2
+
+      - name: Detect changed paths (push only)
+        id: filter
+        if: github.event_name == 'push'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            controller:
+              - 'controller/**'
+              - 'frontend/**'
+              - 'docker-compose.controller.yml'
+              - '.env.controller.example'
+              - 'deploy/controller-cloud-init.yml'
+              - 'scripts/**'
+              - '.github/workflows/deploy.yml'
+            worker:
+              - 'worker/**'
+              - 'docker-compose.worker.yml'
+              - '.env.worker.example'
+              - 'deploy/worker-cloud-init.yml'
+              - 'scripts/**'
+              - '.github/workflows/deploy.yml'
+
+      - name: Decide deploy targets
+        id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_CTRL: ${{ inputs.deploy_controller }}
+          INPUT_WORK: ${{ inputs.deploy_workers }}
+          FILTER_CTRL: ${{ steps.filter.outputs.controller }}
+          FILTER_WORK: ${{ steps.filter.outputs.worker }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            controller="${INPUT_CTRL}"
+            worker="${INPUT_WORK}"
+          else
+            controller="${FILTER_CTRL:-false}"
+            worker="${FILTER_WORK:-false}"
+          fi
+          echo "controller=${controller}" | tee -a "${GITHUB_OUTPUT}"
+          echo "worker=${worker}"         | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deploy plan"
+            echo ""
+            echo "| Target     | Will deploy |"
+            echo "|------------|-------------|"
+            echo "| controller | ${{ steps.decide.outputs.controller }} |"
+            echo "| workers    | ${{ steps.decide.outputs.worker }} |"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  # ---------------------------------------------------------------------------
+  # deploy-controller: runs on the controller droplet's self-hosted runner.
+  # ---------------------------------------------------------------------------
+  deploy-controller:
+    name: deploy-controller
+    needs: detect-changes
+    if: needs.detect-changes.outputs.controller == 'true'
+    runs-on: [self-hosted, linux, controller]
+    timeout-minutes: 20
+    steps:
+      - name: Show runner identity
+        run: |
+          echo "Runner: $(hostname)"
+          echo "User:   $(whoami)"
+          echo "Repo:   /root/regression-farm"
+
+      - name: Run deploy-controller.sh
+        working-directory: /root/regression-farm
+        run: bash scripts/deploy-controller.sh
+
+  # ---------------------------------------------------------------------------
+  # deploy-worker-N: one job per worker, pinned to that worker's label so we
+  # never accidentally deploy to a single worker three times.
+  # ---------------------------------------------------------------------------
+  deploy-worker-1:
+    name: deploy-worker-1
+    needs: detect-changes
+    if: needs.detect-changes.outputs.worker == 'true'
+    runs-on: [self-hosted, linux, worker, worker-1]
+    timeout-minutes: 20
+    steps:
+      - name: Show runner identity
+        run: |
+          echo "Runner: $(hostname)"
+          echo "User:   $(whoami)"
+          echo "Repo:   /root/regression-farm"
+      - name: Run deploy-worker.sh
+        working-directory: /root/regression-farm
+        run: bash scripts/deploy-worker.sh
+
+  deploy-worker-2:
+    name: deploy-worker-2
+    needs: detect-changes
+    if: needs.detect-changes.outputs.worker == 'true'
+    runs-on: [self-hosted, linux, worker, worker-2]
+    timeout-minutes: 20
+    steps:
+      - name: Show runner identity
+        run: |
+          echo "Runner: $(hostname)"
+          echo "User:   $(whoami)"
+          echo "Repo:   /root/regression-farm"
+      - name: Run deploy-worker.sh
+        working-directory: /root/regression-farm
+        run: bash scripts/deploy-worker.sh
+
+  deploy-worker-3:
+    name: deploy-worker-3
+    needs: detect-changes
+    if: needs.detect-changes.outputs.worker == 'true'
+    runs-on: [self-hosted, linux, worker, worker-3]
+    timeout-minutes: 20
+    steps:
+      - name: Show runner identity
+        run: |
+          echo "Runner: $(hostname)"
+          echo "User:   $(whoami)"
+          echo "Repo:   /root/regression-farm"
+      - name: Run deploy-worker.sh
+        working-directory: /root/regression-farm
+        run: bash scripts/deploy-worker.sh
