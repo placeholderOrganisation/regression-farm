@@ -7,6 +7,7 @@ services:
         # confirm with `getent group docker | cut -d: -f3` on the worker droplet.
         DOCKER_GID: ${DOCKER_GID:-999}
     restart: unless-stopped
+    user: "0:0"
     environment:
       CONTROLLER_URL: ${CONTROLLER_URL}
       WORKER_TOKEN: ${WORKER_TOKEN}
