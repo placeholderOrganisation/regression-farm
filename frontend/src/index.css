@@ -3,31 +3,66 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    background-color: #070b14;
+  }
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    color-scheme: dark;
   }
   pre {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  ::selection {
+    background-color: rgba(56, 189, 248, 0.35);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
 @layer components {
   .panel {
-    @apply bg-farm-panel border border-farm-border rounded-lg;
+    @apply relative bg-gradient-to-b from-farm-panel to-farm-elevated/60 border border-farm-border rounded-xl shadow-inset-hi;
+  }
+  .panel-hover {
+    @apply transition duration-200 hover:border-sky-700/50 hover:shadow-glow;
   }
   .pill {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-wide uppercase;
   }
   .btn {
-    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded border border-farm-border bg-slate-800 hover:bg-slate-700 transition;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border border-farm-border bg-gradient-to-b from-slate-800 to-slate-900 text-slate-100 shadow-inset-hi hover:from-slate-700 hover:to-slate-800 hover:border-slate-600 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60;
   }
   .btn-primary {
-    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded bg-sky-600 hover:bg-sky-500 transition text-white;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-white bg-gradient-to-b from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 shadow-inset-hi transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/60;
   }
   .btn-danger {
-    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded bg-rose-600 hover:bg-rose-500 transition text-white;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md text-white bg-gradient-to-b from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 shadow-inset-hi transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/60;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium rounded-md text-slate-300 hover:text-white hover:bg-white/[0.05] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40;
   }
   .input {
-    @apply bg-slate-900 border border-farm-border rounded px-2 py-1.5 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500;
+    @apply bg-slate-950/60 border border-farm-border rounded-md px-2.5 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-sky-500/60 focus:ring-2 focus:ring-sky-500/30 transition;
+  }
+  .section-title {
+    @apply flex items-center gap-2 text-xs uppercase tracking-wider text-farm-muted;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
