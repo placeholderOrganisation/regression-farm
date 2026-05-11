@@ -11,7 +11,7 @@ const TONE_BAR = {
   zinc: "bg-zinc-500",
 };
 
-export default function JobsTable({ jobs }) {
+export default function JobsTable({ jobs, compact = false }) {
   if (!jobs || jobs.length === 0) {
     return (
       <div className="panel p-8 text-center text-slate-400 text-sm">
@@ -83,8 +83,12 @@ export default function JobsTable({ jobs }) {
               <div className="text-xs text-slate-500 font-mono break-all">{j.image}</div>
               <div className="mt-2 text-xs text-slate-500 flex flex-wrap justify-between gap-x-3 gap-y-1">
                 <span>Worker <span className="text-slate-300 tabular">{j.worker_id ?? "—"}</span></span>
-                <span>Queued <RelativeTime iso={j.queued_at} /></span>
-                <span>Finished <RelativeTime iso={j.finished_at} /></span>
+                {!compact && (
+                  <>
+                    <span>Queued <RelativeTime iso={j.queued_at} /></span>
+                    <span>Finished <RelativeTime iso={j.finished_at} /></span>
+                  </>
+                )}
               </div>
             </li>
           );

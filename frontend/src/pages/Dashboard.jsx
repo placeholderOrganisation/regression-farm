@@ -139,7 +139,7 @@ export default function Dashboard() {
 
       <section>
         <SectionHeader icon="jobs" title="Recent jobs" hint="auto-refresh 3s" />
-        <JobsTable jobs={recent.data?.items || []} />
+        <JobsTable jobs={recent.data?.items || []} compact />
       </section>
     </div>
   );
