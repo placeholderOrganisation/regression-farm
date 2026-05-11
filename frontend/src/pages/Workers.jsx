@@ -28,7 +28,7 @@ export default function WorkersPage() {
         </div>
       ))}
       {(data || []).length === 0 && (
-        <div className="panel p-4 text-sm text-slate-400 col-span-3">
+        <div className="panel p-4 text-sm text-slate-400 col-span-full">
           No workers registered yet. Start a worker droplet (or `docker compose up worker` locally).
         </div>
       )}

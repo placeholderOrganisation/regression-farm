@@ -75,7 +75,7 @@ export default function AnalyticsPage() {
 
       <section>
         <h2 className="text-sm uppercase text-slate-400 mb-2">Flaky images</h2>
-        <div className="panel overflow-x-auto">
+        <div className="hidden sm:block panel overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-900/40 text-left text-xs uppercase tracking-wider text-slate-400">
               <tr>
@@ -102,6 +102,38 @@ export default function AnalyticsPage() {
             </tbody>
           </table>
         </div>
+
+        <ul className="sm:hidden space-y-2">
+          {(flaky.data?.items || []).map((row) => (
+            <li key={row.image} className="panel p-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="font-mono text-xs text-slate-200 break-all">{row.image}</div>
+                <span className="pill bg-amber-600/30 text-amber-200 border border-amber-700 shrink-0">
+                  {(row.flake_rate * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs text-center">
+                <div>
+                  <div className="text-slate-500 uppercase tracking-wider">Runs</div>
+                  <div className="text-slate-200">{row.runs}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500 uppercase tracking-wider">Passed</div>
+                  <div className="text-emerald-300">{row.passed}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500 uppercase tracking-wider">Failed</div>
+                  <div className="text-rose-300">{row.failed}</div>
+                </div>
+              </div>
+            </li>
+          ))}
+          {(flaky.data?.items || []).length === 0 && (
+            <li className="panel p-4 text-center text-slate-400 text-sm">
+              No flaky images detected.
+            </li>
+          )}
+        </ul>
       </section>
     </div>
   );

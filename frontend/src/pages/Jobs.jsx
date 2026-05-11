@@ -18,26 +18,30 @@ export default function JobsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="text-sm text-slate-400">Status</label>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="input"
-        >
-          <option value="">All</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-        <label className="text-sm text-slate-400 ml-2">Image contains</label>
-        <input
-          value={imageFilter}
-          onChange={(e) => setImageFilter(e.target.value)}
-          placeholder="e.g. flaky"
-          className="input"
-        />
-        <span className="ml-auto text-xs text-slate-400">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          <label className="text-sm text-slate-400">Status</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="input w-full sm:w-auto"
+          >
+            <option value="">All</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:ml-2">
+          <label className="text-sm text-slate-400">Image contains</label>
+          <input
+            value={imageFilter}
+            onChange={(e) => setImageFilter(e.target.value)}
+            placeholder="e.g. flaky"
+            className="input w-full sm:w-auto"
+          />
+        </div>
+        <span className="text-xs text-slate-400 sm:ml-auto">
           {data?.total ?? 0} total
         </span>
       </div>

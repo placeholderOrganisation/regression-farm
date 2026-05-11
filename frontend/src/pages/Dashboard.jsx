@@ -34,7 +34,7 @@ export default function Dashboard() {
                 </div>
                 <StatusBadge status={w.status} />
               </div>
-              <div className="mt-3 text-xs text-slate-400 flex justify-between">
+              <div className="mt-3 text-xs text-slate-400 flex flex-wrap gap-x-3 gap-y-1">
                 <span>Last seen: <RelativeTime iso={w.last_seen} /></span>
                 <span>Current: {w.current_job_id ? `#${w.current_job_id}` : "—"}</span>
               </div>

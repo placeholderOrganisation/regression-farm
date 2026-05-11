@@ -59,14 +59,17 @@ export default function JobDetail() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs text-slate-400">Job #{job.id}</div>
-          <h1 className="text-xl font-semibold">{job.name}</h1>
-          <div className="text-sm text-slate-400 font-mono">{job.image}</div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="text-xs text-slate-400 flex items-center gap-2 flex-wrap">
+            <span>Job #{job.id}</span>
+            <span className="sm:hidden"><StatusBadge status={job.status} /></span>
+          </div>
+          <h1 className="text-xl font-semibold break-words">{job.name}</h1>
+          <div className="text-sm text-slate-400 font-mono break-all">{job.image}</div>
         </div>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={job.status} />
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="hidden sm:inline-flex"><StatusBadge status={job.status} /></span>
           {!TERMINAL.has(job.status) && (
             <button onClick={cancel} className="btn-danger">Cancel</button>
           )}
@@ -113,9 +116,9 @@ export default function JobDetail() {
           <div className="text-xs uppercase text-slate-400 mb-2">Artifacts ({job.artifacts.length})</div>
           <ul className="text-sm divide-y divide-farm-border">
             {job.artifacts.map((a) => (
-              <li key={a.id} className="py-1 flex justify-between">
-                <span className="font-mono text-slate-300">{a.name}</span>
-                <span className="text-slate-500">{a.size_bytes} bytes</span>
+              <li key={a.id} className="py-1 flex flex-wrap justify-between gap-x-3">
+                <span className="font-mono text-slate-300 break-all">{a.name}</span>
+                <span className="text-slate-500 shrink-0">{a.size_bytes} bytes</span>
               </li>
             ))}
           </ul>

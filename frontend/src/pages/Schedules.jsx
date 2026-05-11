@@ -74,7 +74,7 @@ export default function SchedulesPage() {
         </div>
       </form>
 
-      <div className="panel overflow-x-auto">
+      <div className="hidden sm:block panel overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-900/40 text-xs uppercase tracking-wider text-slate-400">
             <tr>
@@ -115,6 +115,48 @@ export default function SchedulesPage() {
           </tbody>
         </table>
       </div>
+
+      <ul className="sm:hidden space-y-2">
+        {(list || []).map((s) => (
+          <li key={s.id} className="panel p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-medium text-slate-100 break-all">{s.name}</div>
+              <span
+                className={`pill ${
+                  s.enabled
+                    ? "bg-emerald-600/30 text-emerald-200 border border-emerald-700"
+                    : "bg-slate-700 text-slate-300"
+                }`}
+              >
+                {s.enabled ? "Enabled" : "Disabled"}
+              </span>
+            </div>
+            <div className="text-xs font-mono text-slate-300 break-all">{s.cron_expr}</div>
+            <div className="text-xs font-mono text-slate-400 break-all">{s.image}</div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+              <div>
+                <div className="text-slate-500">Next run</div>
+                <div><RelativeTime iso={s.next_run_at} /></div>
+              </div>
+              <div>
+                <div className="text-slate-500">Last triggered</div>
+                <div><RelativeTime iso={s.last_triggered_at} /></div>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button className="btn" onClick={() => toggle(s)}>
+                {s.enabled ? "Disable" : "Enable"}
+              </button>
+              <button className="btn-danger" onClick={() => remove(s)}>Delete</button>
+            </div>
+          </li>
+        ))}
+        {(list || []).length === 0 && (
+          <li className="panel p-4 text-center text-slate-400 text-sm">
+            No schedules yet.
+          </li>
+        )}
+      </ul>
     </div>
   );
 }
